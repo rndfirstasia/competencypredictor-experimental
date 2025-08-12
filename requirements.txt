@@ -8,3 +8,4 @@ requests
 pytz
 urllib3
 google-generativeai
+pydub

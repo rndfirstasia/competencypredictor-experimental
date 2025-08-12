@@ -10,4 +10,5 @@ urllib3
 google-generativeai
 pydub
 ffmpeg-python
+pyaudioop
 

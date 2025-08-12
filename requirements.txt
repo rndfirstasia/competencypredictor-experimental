@@ -1,0 +1,10 @@
+pandas
+boto3
+mysql-connector-python
+streamlit
+Flask
+openai
+requests
+pytz
+urllib3
+google-generativeai

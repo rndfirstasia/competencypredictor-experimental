@@ -173,7 +173,7 @@ if id_input_id_kandidat:
         api_client = api_data["data"].get('client', 'Tidak tersedia')
         api_dob = api_data["data"].get('dob', 'Tidak tersedia')
 
-        #st.write(response_id_kandidat.text) #debug
+        print(response_id_kandidat.text) #debug
         
         with st.container(border=True):
             st.write("#### Informasi ID Kandidat")
@@ -329,7 +329,7 @@ with tab1:
         values = (id_transkrip, registration_id, revisi_transkrip, revisi_speaker, revisi_start_section, revisi_end_section)
         cursor.execute(query, values)
 
-        #st.write("Inserting into txtan_separator with values:", (id_transkrip, registration_id, revisi_transkrip, revisi_speaker, revisi_start_section, revisi_end_section)) #debug
+        print("Inserting into txtan_separator with values:", (id_transkrip, registration_id, revisi_transkrip, revisi_speaker, revisi_start_section, revisi_end_section)) #debug
 
         conn.commit()
         cursor.close()
@@ -356,7 +356,7 @@ with tab1:
         conn.commit()
         cursor.close()
         conn.close()
-        st.success("Step 5/5: Prediksi dibuat, proses selesai.")
+        # st.success("Step 5/5: Prediksi dibuat, proses selesai.")
 
     # Fungsi untuk mengoreksi label pembicara
     def correct_speaker_labels(transkrip, num_speakers):
@@ -391,13 +391,13 @@ with tab1:
         ]
 
         try:
-            # st.write("Sending request to API...") #debug
+            print("Sending request to API...") #debug
             response = openai.chat.completions.create(
                 model="gpt-5-mini-2025-08-07",
                 messages=messages
             )
 
-            # st.write("API Response:", response) #debug
+            print("API Response:", response) #debug
 
             # Validasi respons dari API
             corrected_transcript = response.choices[0].message.content.strip()
@@ -414,9 +414,9 @@ with tab1:
         else:
             lines = gpt_response.split('\n')
         
-        #st.write(lines) #debug
+        print(lines) #debug
         data = {'text': [], 'speaker': []}
-        #st.write(f"Data pada process gpt response: {data}") #debug
+        print(f"Data pada process gpt response: {data}") #debug
 
         for line in lines:
             if line.startswith("**Assessor:** ") or line.startswith("Assessor: ") or line.startswith("ASSESSOR: ") or line.startswith("**ASSESSOR**: ") or line.startswith("**ASSESSOR:** "):
@@ -431,15 +431,15 @@ with tab1:
             data['speaker'].append(speaker)
         
         df = pd.DataFrame(data)
-        st.success("Step 3/5: Pembicara berhasil ditambahkan.") #debug
-        #st.write(f"Process GPT response: {df}") #debug
+        st.success("Pembicara berhasil ditambahkan.") #debug
+        print(f"Process GPT response: {df}") #debug
         
         return df
 
     # Fungsi untuk memproses transkripsi
     def process_transcriptions(registration_id):
         transcriptions = get_transcriptions(registration_id)
-        # st.write(transcriptions) #debug
+        print(transcriptions) #debug
 
         if not transcriptions:
             st.error("No transcriptions found.")
@@ -457,23 +457,23 @@ with tab1:
             combined_transcript = "\n".join([f"{t[3]}: {t[2]}" for t in transcription_group])
             num_speakers = transcription_group[0][6]
 
-            #st.write(f"Processing transcription for registration_id {registration_id}")  #debug
-            #st.write(combined_transcript) #debug
+            print(f"Processing transcription for registration_id {registration_id}")  #debug
+            print(combined_transcript) #debug
 
             corrected_transcript = correct_speaker_labels(combined_transcript, num_speakers)
-            #st.write(f"Corrected Transcript: {corrected_transcript}") #debug
+            print(f"Corrected Transcript: {corrected_transcript}") #debug
             if not corrected_transcript:
                 st.error(f"Corrected Transcript is None for registration_id {registration_id}")
                 continue
 
             df = process_gpt_response_to_dataframe(corrected_transcript)
-            #st.write(df) #debug
+            print(df) #debug
             
             if df.empty:
                 st.error(f"Empty DataFrame for registration_id {registration_id}.")
                 continue
             
-            #st.write(f"Processed DataFrame for {registration_id}:", df)  #debug
+            print(f"Processed DataFrame for {registration_id}:", df)  #debug
 
             # Merger text dan speaker
             merged_text = []
@@ -509,7 +509,7 @@ with tab1:
             df_merged['text'] = df_merged['text'].replace(r'\s+', ' ', regex=True)
 
             for index, row in df_merged.iterrows():
-                #st.write(f"Inserting into txtan_separator: {row['text']}, {row['speaker']}") #debug
+                print(f"Inserting into txtan_separator: {row['text']}, {row['speaker']}") #debug
                 insert_into_separator(
                     transcription_group[0][0], 
                     registration_id, 
@@ -552,7 +552,7 @@ with tab1:
         cursor.execute(query, (registration_id,))
         result = cursor.fetchall()
 
-        #st.write(f"Separator data fetched: {len(result)} entries for registration_id {registration_id}") #debug
+        print(f"Separator data fetched: {len(result)} entries for registration_id {registration_id}") #debug
 
         cursor.close()
         conn.close()
@@ -581,7 +581,6 @@ with tab1:
         result = cursor.fetchall()
         cursor.close()
         conn.close()
-        #st.write(f"hasil query competency: {competencies}")#debug
         
         # Kembalikan hasil sebagai daftar dictionary agar mudah digunakan
         competencies = [{
@@ -627,11 +626,11 @@ with tab1:
     id_level_set_fix = str(id_level_set_fix)
     filtered_levels_predict_competency = df_pito_level[df_pito_level['id_level_set'] == id_level_set_fix]
     level_names = filtered_levels_predict_competency['NAMA LEVEL'].tolist()
-    #st.write(f"Level names: {level_names}")  #debug
-    #st.write(f"Filtered levels predict competency: {filtered_levels_predict_competency}")  #debug
+    print(f"Level names: {level_names}")  #debug
+    print(f"Filtered levels predict competency: {filtered_levels_predict_competency}")  #debug
     dropdown_options_predict_competency = filtered_levels_predict_competency['NAMA LEVEL'].tolist()
-    #st.write(f"Dropdown options predict competency: {dropdown_options_predict_competency}") #debug
-    #st.write(dropdown_options_predict_competency)#debug
+    print(f"Dropdown options predict competency: {dropdown_options_predict_competency}") #debug
+    print(dropdown_options_predict_competency)#debug
 
     #dapetin name_level dari table pito level untuk prediksi
     def get_name_levels_from_id_level_set(id_level_set):
@@ -686,7 +685,7 @@ with tab1:
 
         prompt += "\nHasil hanya akan berupa tabel dengan kolom: Kompetensi, Level, dan Alasan\n"
         
-        st.write(f"Prompt: {prompt}") #debug
+        print(f"Prompt: {prompt}") #debug
 
         messages=[
         {
@@ -707,8 +706,8 @@ with tab1:
                 messages=messages
             )
             elapsed = time.time() - start_time
-            st.write(f"OpenAI API call took {elapsed:.2f} seconds")
-            st.write(f"Response: {response}")  # debug
+            print(f"OpenAI API call took {elapsed:.2f} seconds")
+            print(f"Response: {response}")  # debug
 
             corrected_transcript_dict = response.model_dump()
             corrected_transcript = corrected_transcript_dict['choices'][0]['message']['content']
@@ -734,12 +733,12 @@ with tab1:
     def predictor(registration_id, dropdown_options_predict_competency):
         # Ambil data revisi dan kompetensi
         separator_data = get_separator(registration_id)
-        st.write(f"Separator data: {separator_data}") #debug
+        print(f"Separator data: {separator_data}") #debug
         competency_data = get_competency(registration_id)
-        st.write(f"Competency data: {competency_data}") #debug
+        print(f"Competency data: {competency_data}") #debug
 
-        st.write(f"Fetched {len(separator_data)} separator data entries") #debug
-        st.write(f"Fetched {len(competency_data)} competency data entries") #debug
+        print(f"Fetched {len(separator_data)} separator data entries") #debug
+        print(f"Fetched {len(competency_data)} competency data entries") #debug
 
         if not separator_data:
             st.error("No data found in the separator table.")
@@ -758,10 +757,10 @@ with tab1:
                                 }if row.get("level_value") and row.get("level_name") and row.get("level_description") else {})
                             } 
                             for row in competency_data]
-        st.write(f"Competency list: {competency_list}") #debug
+        print(f"Competency list: {competency_list}") #debug
 
         combined_data = combine_text_by_registration(separator_data)
-        st.write(f"combined_data: {combined_data}") #debug
+        print(f"combined_data: {combined_data}") #debug
 
         all_predictions = []
 
@@ -772,23 +771,23 @@ with tab1:
 
             predicted_competency = predict_competency(combined_text, competency_list, level_names)
 
-            st.write(f"Predicted competency for {registration_id}:\n{predicted_competency}") #debug
+            print(f"Predicted competency for {registration_id}:\n{predicted_competency}") #debug
 
             try:
                 df_competency = pd.read_csv(StringIO(predicted_competency), sep='|', skipinitialspace=True)
                 df_competency.columns = df_competency.columns.str.strip()
                 df_competency['registration_id'] = registration_id
-                st.success(f"Step 4/5: Mohon tunggu, proses prediksi berlangsung.....") #debug
+                # st.success(f"Step 4/5: Mohon tunggu, proses prediksi berlangsung.....") #debug
 
                 all_predictions.append(df_competency)
 
             except Exception as e:
                 st.error(f"Error processing prediction for registration ID {registration_id}: {e}")
         
-        #st.write(all_predictions) #debug
+        print(all_predictions) #debug
 
         if all_predictions:
-            st.write(f"all_predictions before: {all_predictions}")  # debug
+            print(f"all_predictions before: {all_predictions}")  # debug
             
             if isinstance(all_predictions, list) and all(isinstance(df, pd.DataFrame) for df in all_predictions):
                 final_predictions_df = pd.concat(all_predictions, ignore_index=True)
@@ -798,7 +797,7 @@ with tab1:
                 final_predictions_df = final_predictions_df.drop(index=0).reset_index(drop=True)
                 #st.dataframe(f"Final pred DROP dan RESET INDEX: {final_predictions_df}") #debug
                 
-                st.write(f"Final pred DONE: {final_predictions_df}")  # debug
+                print(f"Final pred DONE: {final_predictions_df}")  # debug
                 
                 insert_into_result(final_predictions_df, registration_id)
             else:
@@ -867,7 +866,7 @@ with tab1:
         """
 
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}]
         )
         return response.choices[0].message.content.strip()
@@ -964,14 +963,14 @@ with tab1:
         file_size_mb = len(audio_bytes) / (1024 * 1024)
         estimated_duration = estimate_audio_duration(audio_bytes)
         
-        st.info(f"📊 File size: {file_size_mb:.1f} MB, Estimated duration: {estimated_duration:.1f} minutes")
+        # st.info(f"📊 File size: {file_size_mb:.1f} MB, Estimated duration: {estimated_duration:.1f} minutes")
         
         use_chunking = file_size_mb > file_size_threshold_mb or estimated_duration > duration_threshold_minutes
         
-        if use_chunking:
-            st.info("📦 Large file detected - Using chunked transcription for better accuracy")
-        else:
-            st.info("📝 Regular file size - Using standard transcription")
+        # if use_chunking:
+        #     st.info("📦 Large file detected - Using chunked transcription for better accuracy")
+        # else:
+        #     st.info("📝 Regular file size - Using standard transcription")
         
         return use_chunking
 
@@ -1025,11 +1024,11 @@ with tab1:
             else:
                 raw_bytes = audio_bytes
             
-            st.write(f"DEBUG: Audio size: {len(raw_bytes)} bytes")
+            print(f"DEBUG: Audio size: {len(raw_bytes)} bytes")
             use_chunking = should_use_chunked_transcription(raw_bytes)
 
             if not use_chunking:
-                st.info("🎙️ Transcribing directly...")
+                # st.info("🎙️ Transcribing directly...")
                 audio_file = io.BytesIO(raw_bytes)
                 audio_file.name = file_name
                 response = openai.audio.transcriptions.create(
@@ -1043,7 +1042,7 @@ with tab1:
             if not chunks:
                 raise Exception("Failed to split audio")
 
-            st.write(f"DEBUG: {len(chunks)} chunks created")
+            print(f"DEBUG: {len(chunks)} chunks created")
             chunk_transcripts = []
             progress_bar = st.progress(0)
 
@@ -1197,7 +1196,7 @@ with tab1:
             else:
                 final_result = process_speaker_separation_chunk(transcript_text, speaker_labels, False)  # Gunakan transcript_text
             
-            st.success("✅ Speaker separation completed")
+            #st.success("✅ Speaker separation completed")
             return final_result
             
         except Exception as e:
@@ -1289,11 +1288,11 @@ with tab1:
             else:
                 raw_bytes = audio_bytes
             
-            st.write(f"DEBUG: Audio size: {len(raw_bytes)} bytes")
+            print(f"DEBUG: Audio size: {len(raw_bytes)} bytes")
             use_chunking = should_use_chunked_transcription(raw_bytes)
 
             if not use_chunking:
-                st.info("🎙️ Transcribing directly...")
+                #st.info("🎙️ Transcribing directly...")
                 audio_file = io.BytesIO(raw_bytes)
                 audio_file.name = file_name
                 response = openai.audio.transcriptions.create(
@@ -1307,10 +1306,10 @@ with tab1:
             if not chunks:
                 raise Exception("Failed to split audio")
 
-            st.write(f"DEBUG: {len(chunks)} chunks created")
+            print(f"DEBUG: {len(chunks)} chunks created")
             
             # === BAGIAN YANG DIUBAH: PARALEL PROCESSING ===
-            st.info(f"🚀 Starting parallel transcription of {len(chunks)} chunks...")
+            #st.info(f"🚀 Starting parallel transcription of {len(chunks)} chunks...")
             progress_bar = st.progress(0)
             status_placeholder = st.empty()
             
@@ -1425,7 +1424,7 @@ with tab1:
         
         Args:
             transcript_text: Full transcript text
-            chunk_size: Approximate characters per chunk
+            chunk_size: Approximate WORDS per chunk (not characters)
         
         Returns:
             List of tuples: [(chunk_index, chunk_text), ...]
@@ -1435,22 +1434,29 @@ with tab1:
         
         chunks = []
         current_chunk = ""
+        current_word_count = 0
         chunk_index = 0
         
         for sentence in sentences:
+            sentence_words = len(sentence.split())
+            
             # Add sentence to current chunk
             if current_chunk:
                 test_chunk = current_chunk + ". " + sentence
+                test_word_count = current_word_count + sentence_words + 1  # +1 for the period and space
             else:
                 test_chunk = sentence
+                test_word_count = sentence_words
             
-            # If chunk gets too big, save current and start new one
-            if len(test_chunk) > chunk_size and current_chunk:
+            # If chunk gets too big (in WORDS), save current and start new one
+            if test_word_count > chunk_size and current_chunk:
                 chunks.append((chunk_index, current_chunk))
                 current_chunk = sentence
+                current_word_count = sentence_words
                 chunk_index += 1
             else:
                 current_chunk = test_chunk
+                current_word_count = test_word_count
         
         # Add last chunk
         if current_chunk:
@@ -1512,22 +1518,48 @@ with tab1:
             Combined separated transcript
         """
         
+        print("🔍 DEBUG: Entering separate_speakers_parallel()")
+        print(f"🔍 DEBUG: transcript_text type: {type(transcript_text)}")
+        print(f"🔍 DEBUG: transcript_text length: {len(transcript_text) if transcript_text else 'None/Empty'}")
+        print(f"🔍 DEBUG: num_speakers: {num_speakers}")
+        print(f"🔍 DEBUG: max_workers: {max_workers}")
+        
         if num_speakers <= 1:
-            st.info("👤 Single speaker - skipping separation")
+            #st.info("👤 Single speaker - skipping separation")
+            print("🔍 DEBUG: Returning original transcript (single speaker)")
             return transcript_text
         
-        st.info(f"🎭 Starting parallel speaker separation for {num_speakers} speakers...")
+        # st.info(f"🎭 Starting parallel speaker separation for {num_speakers} speakers...")
         
-        # Split transcript into chunks
-        chunks = split_transcript_for_separation(transcript_text, chunk_size=1500)
-        st.info(f"📋 Split transcript into {len(chunks)} chunks for parallel separation")
+        try:
+            print("🔍 DEBUG: About to call split_transcript_for_separation()")
+            # Split transcript into chunks
+            chunks = split_transcript_for_separation(transcript_text, chunk_size=1500)
+            print(f"🔍 DEBUG: split_transcript_for_separation() returned {len(chunks)} chunks")
+            # st.info(f"📋 Split transcript into {len(chunks)} chunks for parallel separation")
+            
+        except Exception as chunk_error:
+            st.error(f"❌ Error in split_transcript_for_separation(): {chunk_error}")
+            import traceback
+            st.code(traceback.format_exc())
+            return transcript_text  # Fallback to original
         
         if len(chunks) <= 1:
             # If only 1 chunk, use original function
-            st.info("📝 Single chunk - using direct separation")
-            return separate_speakers_gpt4o_mini(transcript_text, num_speakers)
+            # st.info("📝 Single chunk - using direct separation")
+            print("🔍 DEBUG: About to call separate_speakers_gpt4o_mini()")
+            try:
+                result = separate_speakers_gpt4o_mini(transcript_text, num_speakers)
+                print(f"🔍 DEBUG: separate_speakers_gpt4o_mini() returned: {type(result)}")
+                return result
+            except Exception as gpt_error:
+                st.error(f"❌ Error in separate_speakers_gpt4o_mini(): {gpt_error}")
+                import traceback
+                st.code(traceback.format_exc())
+                return transcript_text  # Fallback to original
         
         # Progress tracking
+        print("🔍 DEBUG: Setting up progress tracking")
         progress_bar = st.progress(0)
         status_placeholder = st.empty()
         
@@ -1535,56 +1567,84 @@ with tab1:
         separation_results = [None] * len(chunks)
         completed = 0
         
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            # Submit all chunks for separation
-            future_to_index = {
-                executor.submit(separate_speakers_single_chunk, chunk, num_speakers): chunk[0]
-                for chunk in chunks
-            }
-            
-            # Process completed futures
-            for future in concurrent.futures.as_completed(future_to_index):
-                chunk_index = future_to_index[future]
+        print("🔍 DEBUG: Starting ThreadPoolExecutor")
+        try:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+                print("🔍 DEBUG: Submitting chunks for separation")
+                # Submit all chunks for separation
+                future_to_index = {}
+                for i, chunk in enumerate(chunks):
+                    try:
+                        future = executor.submit(separate_speakers_single_chunk, chunk, num_speakers)
+                        future_to_index[future] = i  # Use index instead of chunk[0]
+                        print(f"🔍 DEBUG: Submitted chunk {i} for separation")
+                    except Exception as submit_error:
+                        st.error(f"❌ Error submitting chunk {i}: {submit_error}")
                 
-                try:
-                    result = future.result()
-                    separation_results[result["chunk_index"]] = result
+                print(f"🔍 DEBUG: {len(future_to_index)} chunks submitted successfully")
+                
+                # Process completed futures
+                for future in concurrent.futures.as_completed(future_to_index):
+                    chunk_index = future_to_index[future]
+                    print(f"🔍 DEBUG: Processing completed future for chunk {chunk_index}")
                     
-                    completed += 1
-                    progress_bar.progress(completed / len(chunks))
-                    
-                    if result["success"]:
-                        status_placeholder.success(f"✅ Speaker separation {result['chunk_index']+1}/{len(chunks)} completed")
-                    else:
-                        status_placeholder.warning(f"⚠️ Speaker separation {result['chunk_index']+1}/{len(chunks)} failed: {result['error']}")
+                    try:
+                        result = future.result()
+                        print(f"🔍 DEBUG: Future result type: {type(result)}")
+                        print(f"🔍 DEBUG: Future result keys: {result.keys() if isinstance(result, dict) else 'Not a dict'}")
                         
-                except Exception as exc:
-                    completed += 1
-                    progress_bar.progress(completed / len(chunks))
-                    status_placeholder.error(f"❌ Speaker separation {chunk_index+1}/{len(chunks)} exception: {exc}")
-                    
-                    # Create fallback result
-                    separation_results[chunk_index] = {
-                        "success": False,
-                        "chunk_index": chunk_index,
-                        "error": str(exc),
-                        "fallback_text": chunks[chunk_index][1]  # Original chunk text
-                    }
+                        separation_results[result["chunk_index"]] = result
+                        
+                        completed += 1
+                        progress_bar.progress(completed / len(chunks))
+                        
+                        if result["success"]:
+                            status_placeholder.success(f"✅ Speaker separation {result['chunk_index']+1}/{len(chunks)} completed")
+                        else:
+                            status_placeholder.warning(f"⚠️ Speaker separation {result['chunk_index']+1}/{len(chunks)} failed: {result['error']}")
+                            
+                    except Exception as exc:
+                        st.error(f"❌ Exception processing chunk {chunk_index}: {exc}")
+                        import traceback
+                        st.code(traceback.format_exc())
+                        
+                        completed += 1
+                        progress_bar.progress(completed / len(chunks))
+                        status_placeholder.error(f"❌ Speaker separation {chunk_index+1}/{len(chunks)} exception: {exc}")
+                        
+                        # Create fallback result
+                        separation_results[chunk_index] = {
+                            "success": False,
+                            "chunk_index": chunk_index,
+                            "error": str(exc),
+                            "fallback_text": chunks[chunk_index][1] if len(chunks[chunk_index]) > 1 else str(chunks[chunk_index])
+                        }
+                
+        except Exception as executor_error:
+            st.error(f"❌ Error in ThreadPoolExecutor: {executor_error}")
+            import traceback
+            st.code(traceback.format_exc())
+            return transcript_text  # Fallback to original
         
         # Combine results in order
-        st.info("🔗 Combining separated chunks in correct order...")
+        # st.info("🔗 Combining separated chunks in correct order...")
+        print(f"🔍 DEBUG: separation_results length: {len(separation_results)}")
+        print(f"🔍 DEBUG: None results: {sum(1 for r in separation_results if r is None)}")
         
         combined_separated = ""
         successful_chunks = 0
         
-        for result in separation_results:
+        for i, result in enumerate(separation_results):
+            print(f"🔍 DEBUG: Processing result {i}: {result is not None}")
             if result:
                 if result["success"]:
                     text_to_add = result["separated_text"]
                     successful_chunks += 1
+                    print(f"🔍 DEBUG: Added successful chunk {i}")
                 else:
                     # Use original text if separation failed
                     text_to_add = result["fallback_text"]
+                    print(f"🔍 DEBUG: Added fallback chunk {i}")
                 
                 # Add proper spacing between chunks
                 if combined_separated and not combined_separated.endswith("\n"):
@@ -1595,18 +1655,21 @@ with tab1:
         # Clean up combined result
         combined_separated = combined_separated.strip()
         
+        print(f"🔍 DEBUG: Final combined_separated length: {len(combined_separated)}")
+        
         # Show summary
         success_rate = successful_chunks / len(chunks) * 100
-        st.success(f"""
-        🎭 **Parallel Speaker Separation Completed!**
+        # st.success(f"""
+        # 🎭 **Parallel Speaker Separation Completed!**
         
-        📊 **Results:**
-        - Successful chunks: {successful_chunks}/{len(chunks)}
-        - Success rate: {success_rate:.1f}%
-        - Total speakers: {num_speakers}
-        - Final transcript length: {len(combined_separated)} characters
-        """)
+        # 📊 **Results:**
+        # - Successful chunks: {successful_chunks}/{len(chunks)}
+        # - Success rate: {success_rate:.1f}%
+        # - Total speakers: {num_speakers}
+        # - Final transcript length: {len(combined_separated)} characters
+        # """)
         
+        print("🔍 DEBUG: Returning combined_separated")
         return combined_separated
     
     def split_audio_into_chunks(audio_bytes, chunk_duration_ms=600000, overlap_ms=1000):
@@ -1922,10 +1985,42 @@ with tab1:
             }
         }
 
+    def predictor_direct(transcript, registration_id, competencies):
+        """
+        Modified predictor that works directly with transcript without database dependency
+        """
+        try:
+            # Your existing prediction logic here, but using the passed transcript directly
+            # instead of querying from database
+            
+            # Example implementation:
+            prediction_prompt = f"""
+            Analyze this audio transcript for competencies: {competencies}
+            
+            Transcript:
+            {transcript}
+            
+            Registration ID: {registration_id}
+            
+            Please provide competency assessment...
+            """
+            
+            # Call your AI model for prediction
+            # Replace this with your actual prediction logic
+            result = {
+                "success": True,
+                "predictions": "Your prediction results here",
+                "competencies_analyzed": competencies
+            }
+            
+            return result
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
     
 # ============================ END OF MAINTENANCE TRANSCRIBE =====================================
 
-    if st.button("Upload, Transcribe dan Prediksi (Full Parallel)", key="SimpanTranscribeFullParallel"):
+    if st.button("Upload, Transcribe dan Prediksi", key="SimpanTranscribeFullParallel"):
         if audio_file is not None:
             # Timer
             start_time = time.time()
@@ -1938,171 +2033,378 @@ with tab1:
             # Progress tracking
             progress_bar = st.progress(0)
             
-            # === PRIORITY PATH: PARALLEL TRANSCRIPTION ===
-            st.info("🚀 PRIORITY: Starting parallel chunk transcription...")
+            # === START PARALLEL PROCESSES IMMEDIATELY ===
+            #st.info("🚀 Starting PARALLEL processing: Transcription + S3 Upload...")
             progress_bar.progress(5)
             
-            # STEP 1: PARALLEL TRANSCRIPTION
-            transcription_result = transcribe_with_parallel_chunks(
-                audio_file_bytes, 
-                file_name, 
-                max_workers=4  # Adjust based on your API limits
-            )
-            
-            if not transcription_result["success"]:
-                st.error(f"❌ Parallel transcription failed: {transcription_result['error']}")
-                st.stop()
-            
-            transcript = transcription_result["transcript"]
-            transcription_method = transcription_result["method"]
-            
-            # Show transcription stats
-            stats = transcription_result.get("details", {})
-            st.success(f"""
-            ⚡ PARALLEL TRANSCRIPTION COMPLETED!
-            
-            📊 **Processing Stats:**
-            - Method: {transcription_method}
-            - Chunks Processed: {transcription_result.get('chunks_processed', 0)}/{transcription_result.get('total_chunks', 0)}
-            - Success Rate: {transcription_result.get('success_rate', 0):.1f}%
-            - OpenAI Chunks: {stats.get('openai_chunks', 0)}
-            - Gemini Chunks: {stats.get('gemini_chunks', 0)}
-            - Failed Chunks: {stats.get('failed_chunks', 0)}
-            """)
-            
-            progress_bar.progress(35)
-            
-            # STEP 2: IMMEDIATE PREDICTION (Quick path for user)
-            st.info("🎯 PRIORITY: Running prediction directly from transcript...")
-            progress_bar.progress(40)
-            
-            try:
-                # DEBUG: Show transcript preview
-                st.write("🔍 Combined Transcript Preview:")
-                preview_text = transcript[:500] + "..." if len(transcript) > 500 else transcript
-                st.text_area("Transcript", preview_text, height=150)
+            with concurrent.futures.ThreadPoolExecutor(max_workers=3) as main_executor:
                 
-                # Create minimal database entry for prediction
-                tz = pytz.timezone('Asia/Jakarta')
-                conn = create_db_connection()
-                cursor = conn.cursor()
-                
-                selected_id_product = int(selected_product['id_product'].iloc[0])
-                selected_option_num_speaker = int(selected_option_num_speaker)
-                
-                insert_query = """
-                INSERT INTO txtan_audio (registration_id, date, num_speakers, id_product, id_level_set, kode_assessor, audio_file_name)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-                """
-                data = (
-                    id_input_id_kandidat,
-                    datetime.now(tz),
-                    1,  # Default single speaker for prediction
-                    selected_id_product,
-                    selected_option_level_set,
-                    id_input_kode_assessor,
-                    file_name
+                # PROCESS 1: TRANSCRIPTION (Priority)
+                transcription_future = main_executor.submit(
+                    transcribe_with_parallel_chunks,
+                    audio_file_bytes, 
+                    file_name, 
+                    4  # max_workers
                 )
-                cursor.execute(insert_query, data)
-                conn.commit()
-                temp_id_audio = cursor.lastrowid
                 
-                # Create single transcript entry for prediction
-                insert_query = """
-                INSERT INTO txtan_separator (id_transkrip, registration_id, revisi_transkrip, revisi_speaker, revisi_start_section, revisi_end_section)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                """
-                cursor.execute(insert_query, (
-                    temp_id_audio,
-                    id_input_id_kandidat,
-                    transcript,  # Combined transcript
-                    'Kandidat',  # Default speaker
-                    0,
-                    0
-                ))
-                conn.commit()
-                cursor.close()
-                conn.close()
-                
-                progress_bar.progress(55)
-                st.success("✅ Database entry created for prediction")
-                
-                # RUN PREDICTION IMMEDIATELY
-                st.info("🤖 Running AI Prediction...")
-                predictor(id_input_id_kandidat, dropdown_options_predict_competency)
-                
-                progress_bar.progress(70)
-                st.success("⚡ PREDICTION COMPLETED!")
-                end_time = time.time()
-                
-            except Exception as e:
-                st.error(f"❌ Prediction failed: {e}")
-                import traceback
-                st.error("Full error traceback:")
-                st.code(traceback.format_exc())
-                st.stop()
-            
-            # === PARALLEL BACKGROUND PROCESSES (Non-blocking) ===
-            st.info("🔄 Background: Starting parallel processes...")
-            progress_bar.progress(75)
-            
-            def upload_to_s3_background():
-                """S3 Upload in background"""
-                try:
-                    s3_client = boto3.client('s3',
-                                aws_access_key_id=aws_access_key_id,
-                                aws_secret_access_key=aws_secret_access_key,
-                                endpoint_url=endpoint_url)
-                    
-                    s3_client.upload_fileobj(io.BytesIO(audio_file_bytes), 'rpi-ta', file_name)
-                    return {"success": True, "message": f"S3 upload completed for {file_name}"}
-                except Exception as e:
-                    return {"success": False, "error": str(e)}
-                
-            # ATAU ALTERNATIF YANG LEBIH SEDERHANA LAGI:
-            def sort_dataframe_by_text_position_simple(df_separated, original_transcript):
-                """
-                Sort berdasarkan panjang prefix yang cocok dengan transcript asli
-                """
-                def get_position_score(text):
-                    # Cari posisi kemunculan text dalam transcript
-                    clean_text = text.strip().lower()[:30]  # 30 char pertama
-                    clean_transcript = original_transcript.lower()
-                    
-                    pos = clean_transcript.find(clean_text)
-                    return pos if pos != -1 else 999999  # Jika tidak ketemu, taruh di akhir
-                
-                df_separated['position'] = df_separated['text'].apply(get_position_score)
-                df_sorted = df_separated.sort_values('position').reset_index(drop=True)
-                df_sorted = df_sorted.drop('position', axis=1)
-                
-                return df_sorted
-            
-            def process_parallel_speaker_separation_and_save():
-                """PARALLEL speaker separation and proper database save in background"""
-                try:
-                    if selected_option_num_speaker > 1:
-                        # === NEW: Apply PARALLEL speaker separation ===
-                        st.info("🎭 Background: Starting PARALLEL speaker separation...")
+                # PROCESS 2: S3 UPLOAD (Parallel with transcription)
+                def upload_to_s3_parallel():
+                    try:
+                        s3_client = boto3.client('s3',
+                                    aws_access_key_id=aws_access_key_id,
+                                    aws_secret_access_key=aws_secret_access_key,
+                                    endpoint_url=endpoint_url)
                         
-                        # Use parallel speaker separation instead of sequential
-                        separated_transcript = separate_speakers_parallel(
-                            transcript, 
-                            selected_option_num_speaker,
-                            max_workers=3  # Lower for GPT API limits
-                        )
-                        
-                        # Process separated transcript to DataFrame
-                        df_separated = process_gpt_response_to_dataframe(separated_transcript)
-                        
-                        df_separated = sort_dataframe_by_text_position_simple(df_separated, transcript)
+                        s3_client.upload_fileobj(io.BytesIO(audio_file_bytes), 'rpi-ta', file_name)
+                        return {"success": True, "message": f"S3 upload completed"}
+                    except Exception as e:
+                        return {"success": False, "error": str(e)}
+                
+                s3_future = main_executor.submit(upload_to_s3_parallel)
+                
+                #st.success("✅ Parallel processes STARTED")
+                progress_bar.progress(15)
 
-                        if df_separated is not None and not df_separated.empty:
-                            # Create NEW proper audio record with separation
+                st.success(f"Step 1/8: File {file_name} berhasil terupload.")
+                
+                # === WAIT FOR TRANSCRIPTION (Priority) ===
+                #st.info("⚡ Waiting for transcription...")
+                transcription_result = transcription_future.result()
+                
+                if not transcription_result["success"]:
+                    st.error(f"❌ Transcription failed: {transcription_result['error']}")
+                    st.stop()
+                
+                transcript = transcription_result["transcript"]
+                transcription_method = transcription_result["method"]
+                
+                # Show transcription stats
+                stats = transcription_result.get("details", {})
+                # st.success(f"""
+                # ⚡ TRANSCRIPTION COMPLETED!
+                
+                # 📊 **Stats:**
+                # - Method: {transcription_method}
+                # - Chunks: {transcription_result.get('chunks_processed', 0)}/{transcription_result.get('total_chunks', 0)}
+                # - Success Rate: {transcription_result.get('success_rate', 0):.1f}%
+                # - OpenAI: {stats.get('openai_chunks', 0)}
+                # - Gemini: {stats.get('gemini_chunks', 0)}
+                # """)
+                
+                progress_bar.progress(40)
+                st.success("Step 2/8: Audio berhasil dikirim untuk transkripsi.")
+                
+                # === START SPEAKER SEPARATION IN BACKGROUND ===
+                def process_speaker_separation_background():
+                    try:
+                        # Debug: Log function start
+                        #print("🔍 DEBUG: process_speaker_separation_background() STARTED")
+                        
+                        # Debug: Check variables in thread scope
+                        #print(f"🔍 DEBUG: selected_option_num_speaker = {selected_option_num_speaker} (type: {type(selected_option_num_speaker)})")
+                        #print(f"🔍 DEBUG: transcript length = {len(transcript) if 'transcript' in globals() else 'NOT FOUND'}")
+                        
+                        # FIXED: Ensure integer conversion and proper variable access
+                        try:
+                            num_speakers = int(selected_option_num_speaker) if selected_option_num_speaker else 2
+                        except (ValueError, TypeError):
+                            print(f"🔍 DEBUG: Failed to convert {selected_option_num_speaker} to int, defaulting to 2")
+                            num_speakers = 2
+                        
+                        #print(f"🔍 DEBUG: Converted num_speakers = {num_speakers}")
+                        print(f"🔍 DEBUG: Final num_speakers = {num_speakers}")
+                        
+                        if num_speakers > 1:
+                            #print("🔍 DEBUG: Multi-speaker condition TRUE - proceeding with separation")
+                            #st.info("🎭 Background: Starting speaker separation...")
+                            
+                            # FIXED: Call separate_speakers_parallel with proper error handling
+                            #print("🔍 DEBUG: About to call separate_speakers_parallel...")
+                            
+                            separated_transcript = separate_speakers_parallel(
+                                transcript, 
+                                2,
+                                max_workers=3
+                            )
+                            
+                            #print(f"🔍 DEBUG: separate_speakers_parallel completed. Result type: {type(separated_transcript)}")
+                            
+                            # Debug: Show raw separated result
+                            if separated_transcript:
+                                print(f"🔍 DEBUG: Separated transcript length: {len(separated_transcript)}")
+                                print(f"🔍 DEBUG: Separated transcript content preview:")
+                                print(separated_transcript[:500])
+                                
+                                # PERBAIKAN 4: Check jika hasil hanya 1 line tanpa separation
+                                lines = separated_transcript.strip().split('\n')
+                                speaker_lines = [line for line in lines if '**' in line or ':' in line]
+                                print(f"🔍 DEBUG: Found {len(speaker_lines)} speaker lines out of {len(lines)} total lines")
+                                
+                                if len(speaker_lines) < 2:
+                                    print("🔍 DEBUG: WARNING - Very few speaker lines detected!")
+                                    print("🔍 DEBUG: This suggests speaker separation failed")
+                                    # Tampilkan isi untuk debugging
+                                    st.warning("⚠️ DEBUG: Speaker separation mungkin gagal - hanya sedikit baris speaker terdeteksi")
+                                    st.code(separated_transcript[:1000])  # Show first 1000 chars for debugging
+                            else:
+                                print("🔍 DEBUG: separated_transcript is empty/None")
+                                return {"success": False, "error": "separated_transcript is empty"}
+                            
+                            # Process to DataFrame using existing function
+                            print("🔍 DEBUG: Processing to DataFrame...")
+                            df_separated = process_gpt_response_to_dataframe(separated_transcript)
+                            
+                            if df_separated is not None and not df_separated.empty:
+                                #print(f"🔍 DEBUG: DataFrame created successfully. Shape: {df_separated.shape}")
+                                
+                                # Debug info
+                                print(f"🔍 DEBUG: DataFrame shape: {df_separated.shape}")
+                                print(f"🔍 DEBUG: DataFrame columns: {df_separated.columns.tolist()}")
+                                print(f"🔍 DEBUG: DataFrame dtypes: {df_separated.dtypes.to_dict()}")
+                                print(f"🔍 DEBUG: Sample data:")
+                                # st.dataframe(df_separated.head(3))
+                                
+                                # Ensure required columns exist
+                                required_columns = ['text', 'speaker']
+                                missing_cols = [col for col in required_columns if col not in df_separated.columns]
+                                
+                                if missing_cols:
+                                    # print(f"🔍 DEBUG: Missing columns: {missing_cols}")
+                                    st.warning(f"⚠️ Missing columns in DataFrame: {missing_cols}")
+                                    # Add missing columns with defaults
+                                    for col in missing_cols:
+                                        if col == 'text':
+                                            df_separated['text'] = separated_transcript
+                                        elif col == 'speaker':
+                                            df_separated['speaker'] = 'Kandidat'
+                                
+                                # Ensure start_time and end_time columns exist with proper types
+                                if 'start_time' not in df_separated.columns:
+                                    df_separated['start_time'] = range(len(df_separated))
+                                if 'end_time' not in df_separated.columns:
+                                    df_separated['end_time'] = range(len(df_separated))
+                                
+                                # Fix data types
+                                df_separated['start_time'] = pd.to_numeric(df_separated['start_time'], errors='coerce').fillna(0).astype(int)
+                                df_separated['end_time'] = pd.to_numeric(df_separated['end_time'], errors='coerce').fillna(0).astype(int)
+                                
+                                # FIXED: Enhanced ordering for better sequence
+                                def sort_by_text_position_enhanced_fixed(df_separated, original_transcript):
+                                    try:
+                                        def get_position_score(text):
+                                            try:
+                                                # Ensure text is string
+                                                if not isinstance(text, str):
+                                                    text = str(text)
+                                                
+                                                # Take first 10 words for matching
+                                                clean_text = ' '.join(text.strip().split()[:10]).lower()
+                                                clean_transcript = original_transcript.lower()
+                                                
+                                                # Direct search
+                                                pos = clean_transcript.find(clean_text)
+                                                if pos != -1:
+                                                    return pos  # Return as int directly
+                                                
+                                                # Word by word search as fallback
+                                                words = clean_text.split()
+                                                for i, word in enumerate(words):
+                                                    if len(word) > 3:
+                                                        pos = clean_transcript.find(word)
+                                                        if pos != -1:
+                                                            return pos + (i * 100)  # Return as int directly
+                                                
+                                                return 999999  # Large number for not found
+                                            except Exception as e:
+                                                print(f"🔍 DEBUG: Error in get_position_score: {e}")
+                                                return 999999
+                                        
+                                        # Apply position scoring
+                                        df_separated = df_separated.copy()
+                                        df_separated['position'] = df_separated['text'].apply(get_position_score)
+                                        
+                                        # Debug position values
+                                        print(f"🔍 DEBUG: Position values: {df_separated['position'].tolist()}")
+                                        print(f"🔍 DEBUG: Position values: {df_separated['position'].tolist()}")
+                                        
+                                        # Ensure all are numeric
+                                        df_separated['position'] = pd.to_numeric(df_separated['position'], errors='coerce').fillna(999999).astype(int)
+                                        
+                                        # Sort and clean
+                                        df_sorted = df_separated.sort_values('position').reset_index(drop=True)
+                                        df_sorted = df_sorted.drop('position', axis=1)
+                                        return df_sorted
+                                        
+                                    except Exception as e:
+                                        print(f"🔍 DEBUG: Error in sort_by_text_position_enhanced_fixed: {e}")
+                                        st.error(f"🔍 DEBUG: Sorting error: {e}")
+                                        return df_separated  # Return unsorted if sorting fails
+                                
+                                print("🔍 DEBUG: Applying enhanced sorting...")
+                                df_separated = sort_by_text_position_enhanced_fixed(df_separated, transcript)
+                                
+                                # Final validation - ensure speaker column has proper values
+                                if 'speaker' in df_separated.columns:
+                                    # Check if speakers are properly identified
+                                    unique_speakers = df_separated['speaker'].unique()
+                                    print(f"🔍 DEBUG: Unique speakers found: {unique_speakers}")
+                                    print(f"🔍 DEBUG: Unique speakers found: {unique_speakers}")
+                                    
+                                    # If no proper speaker separation happened, warn user
+                                    if len(unique_speakers) == 1 and unique_speakers[0] == 'Kandidat':
+                                        print("🔍 DEBUG: Warning - all entries marked as 'Kandidat'")
+                                        st.warning("⚠️ Speaker separation may not have worked - all entries marked as 'Kandidat'")
+                                
+                                print("🔍 DEBUG: Returning successful result")
+                                return {
+                                    "success": True,
+                                    "df_separated": df_separated,
+                                    "method": "Parallel Separation with Enhanced Ordering (Fixed)",
+                                    "entries": len(df_separated)
+                                }
+                            else:
+                                print("🔍 DEBUG: DataFrame processing failed")
+                                return {"success": False, "error": "Failed to process separated transcript"}
+                        else:
+                            # Single speaker
+                            print(f"🔍 DEBUG: Single speaker mode (num_speakers = {num_speakers})")
+                            single_df = pd.DataFrame({
+                                'speaker': ['Kandidat'],
+                                'text': [transcript],
+                                'start_time': [0],
+                                'end_time': [0]
+                            })
+                            return {
+                                "success": True,
+                                "df_separated": single_df,
+                                "method": "Single Speaker",
+                                "entries": 1
+                            }
+                            
+                    except Exception as e:
+                        print(f"🔍 DEBUG: Exception in process_speaker_separation_background: {e}")
+                        st.error(f"🔍 DEBUG: Exception in process_speaker_separation_background: {e}")
+                        import traceback
+                        error_traceback = traceback.format_exc()
+                        print(f"🔍 DEBUG: Traceback:\n{error_traceback}")
+                        st.code(error_traceback)
+                        return {"success": False, "error": str(e), "traceback": error_traceback}
+                
+                # Start separation in background
+                separation_future = main_executor.submit(process_speaker_separation_background)
+                # st.success("🔄 Background: Speaker separation STARTED")
+                
+                # === IMMEDIATE PREDICTION (No Database Insert) ===
+                # st.info("🎯 PRIORITY: Running IMMEDIATE prediction...")
+                progress_bar.progress(50)
+                st.success("Step 3/8: Pembicara berhasil ditambahkan.")
+                
+                try:
+                    # Show transcript preview
+                    print("🔍 Transcript Preview:")
+                    preview_text = transcript[:500] + "..." if len(transcript) > 500 else transcript
+                    # st.text_area("Transcript", preview_text, height=150)
+                    
+                    # Create temporary minimal database entry ONLY for prediction
+                    tz = pytz.timezone('Asia/Jakarta')
+                    conn = create_db_connection()
+                    cursor = conn.cursor()
+                    
+                    selected_id_product = int(selected_product['id_product'].iloc[0])
+                    
+                    insert_query = """
+                    INSERT INTO txtan_audio (registration_id, date, num_speakers, id_product, id_level_set, kode_assessor, audio_file_name)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """
+                    data = (
+                        id_input_id_kandidat,
+                        datetime.now(tz),
+                        1,  # Temporary single speaker for prediction
+                        selected_id_product,
+                        selected_option_level_set,
+                        id_input_kode_assessor,
+                        file_name
+                    )
+                    cursor.execute(insert_query, data)
+                    conn.commit()
+                    temp_id_audio = cursor.lastrowid
+                    
+                    # Single transcript entry for prediction
+                    insert_query = """
+                    INSERT INTO txtan_separator (id_transkrip, registration_id, revisi_transkrip, revisi_speaker, revisi_start_section, revisi_end_section)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    """
+                    cursor.execute(insert_query, (
+                        temp_id_audio,
+                        id_input_id_kandidat,
+                        transcript,
+                        'Kandidat',
+                        0,
+                        0
+                    ))
+                    conn.commit()
+                    cursor.close()
+                    conn.close()
+                    
+                    progress_bar.progress(60)
+                    st.success("Step 4/8: Mohon tunggu, proses prediksi berlangsung.....")
+                    
+                    # RUN PREDICTION with existing function
+                    # st.info("🤖 Running AI Prediction...")
+                    predictor(id_input_id_kandidat, dropdown_options_predict_competency)
+                    
+                    progress_bar.progress(75)
+                    # st.success("⚡ PREDICTION COMPLETED!")
+                    
+                    # Show prediction ready notification
+                    st.success("Step 5/8: AI selesai menganalisis, hasil prediksi siap!")
+                    st.info("🎉 **PREDIKSI SUDAH SIAP!** Anda sudah bisa melihat hasil prediksi dengan aman di halaman web baru.")
+                    st.warning("⚠️ **PENTING:** Jangan tutup halaman ini sampai semua proses selesai (Step 8/8)")
+                    
+                    prediction_time = time.time()
+                    
+                except Exception as e:
+                    st.error(f"❌ Prediction failed: {e}")
+                    import traceback
+                    st.error("Error traceback:")
+                    st.code(traceback.format_exc())
+                    st.stop()
+                
+                # === BACKGROUND COMPLETION HANDLING ===
+                # st.info("🔄 Processing background tasks completion...")
+                progress_bar.progress(85)
+                st.success("Step 6/8: Melakukan finalisasi.")
+                st.info("⏳ Sedang menyelesaikan proses terakhir - mohon tidak menutup halaman ini...")
+                
+                # Check S3 status
+                # try:
+                #     s3_result = s3_future.result(timeout=5)
+                #     if s3_result["success"]:
+                #         # st.success(f"✅ S3 Upload: {s3_result['message']}")
+                #     else:
+                #         st.warning(f"⚠️ S3 Upload: {s3_result['error']}")
+                # except concurrent.futures.TimeoutError:
+                #     st.info("🔄 S3 upload continuing...")
+                # except Exception as e:
+                #     st.warning(f"⚠️ S3 error: {str(e)}")
+                
+                # Check separation status and save final results
+                try:
+                    separation_result = separation_future.result(timeout=120)
+                    if separation_result["success"]:
+                        # st.success(f"⚡ Speaker Separation: {separation_result['method']} - {separation_result['entries']} entries")
+                        
+                        # Save final separated results to database
+                        # st.info("💾 Saving final separated results...")
+                        
+                        progress_bar.progress(95)
+                        st.success("Step 7/8: Finalisasi data ke sistem...")
+                        
+                        try:
                             conn = create_db_connection()
                             cursor = conn.cursor()
                             
-                            # Create new audio record with correct speaker count
+                            # Create final audio record with correct speaker count
                             insert_query = """
                             INSERT INTO txtan_audio (registration_id, date, num_speakers, id_product, id_level_set, kode_assessor, audio_file_name)
                             VALUES (%s, %s, %s, %s, %s, %s, %s)
@@ -2110,7 +2412,7 @@ with tab1:
                             data = (
                                 id_input_id_kandidat,
                                 datetime.now(tz),
-                                selected_option_num_speaker,  # Actual speaker count
+                                selected_option_num_speaker,
                                 selected_id_product,
                                 selected_option_level_set,
                                 id_input_kode_assessor,
@@ -2119,11 +2421,16 @@ with tab1:
                             cursor.execute(insert_query, data)
                             conn.commit()
                             final_id_audio = cursor.lastrowid
+
+                            delete_old_query = "DELETE FROM txtan_separator WHERE registration_id = %s"
+                            cursor.execute(delete_old_query, (id_input_id_kandidat,))
+                            conn.commit()
                             
-                            # === OPTIMIZED: BATCH INSERT separated transcript entries ===
-                            batch_data_separated = []
+                            # Batch insert separated entries
+                            df_separated = separation_result["df_separated"]
+                            batch_data = []
                             for index, row in df_separated.iterrows():
-                                batch_data_separated.append((
+                                batch_data.append((
                                     final_id_audio,
                                     id_input_id_kandidat,
                                     row['text'],
@@ -2136,107 +2443,38 @@ with tab1:
                             INSERT INTO txtan_separator (id_transkrip, registration_id, revisi_transkrip, revisi_speaker, revisi_start_section, revisi_end_section)
                             VALUES (%s, %s, %s, %s, %s, %s)
                             """
-                            # BATCH INSERT - much faster than individual inserts
-                            cursor.executemany(insert_query, batch_data_separated)
-                            conn.commit()
-                            
-                            # Delete temporary prediction entry
-                            delete_query = "DELETE FROM txtan_separator WHERE id_transkrip = %s"
-                            cursor.execute(delete_query, (temp_id_audio,))
-                            delete_query = "DELETE FROM txtan_audio WHERE id = %s"
-                            cursor.execute(delete_query, (temp_id_audio,))
+                            cursor.executemany(insert_query, batch_data)
                             conn.commit()
                             
                             cursor.close()
                             conn.close()
                             
-                            return {
-                                "success": True, 
-                                "message": f"PARALLEL speaker separation + BATCH insert completed ({len(batch_data_separated)} entries)",
-                                "final_id": final_id_audio,
-                                "method": "Parallel Separation + Batch Insert"
-                            }
-                        else:
-                            return {"success": False, "error": "Failed to process separated transcript"}
+                            # st.success(f"✅ Database: Final results saved - {len(batch_data)} entries")
+                            
+                        except Exception as db_e:
+                            st.error(f"❌ Database save error: {str(db_e)}")
                             
                     else:
-                        # Single speaker - just update the temporary entry to final
-                        conn = create_db_connection()
-                        cursor = conn.cursor()
+                        st.warning(f"⚠️ Speaker separation: {separation_result['error']}")
                         
-                        # Update num_speakers to actual count
-                        update_query = "UPDATE txtan_audio SET num_speakers = %s WHERE id = %s"
-                        cursor.execute(update_query, (selected_option_num_speaker, temp_id_audio))
-                        conn.commit()
-                        cursor.close()
-                        conn.close()
-                        
-                        return {
-                            "success": True, 
-                            "message": "Single speaker - database entry finalized",
-                            "final_id": temp_id_audio,
-                            "method": "Single Speaker (No Separation)"
-                        }
-                        
+                except concurrent.futures.TimeoutError:
+                    print("🔄 Speaker separation still processing...")
                 except Exception as e:
-                    return {"success": False, "error": str(e)}
-            
-            # Run background processes in parallel (non-blocking)
-            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-                s3_future = executor.submit(upload_to_s3_background)
-                separation_future = executor.submit(process_parallel_speaker_separation_and_save)
-                
-                # Don't wait - just start background processes
-                st.success("🔄 Background processes started (S3 upload + PARALLEL Speaker separation & BATCH DB save)")
+                    st.warning(f"⚠️ Separation error: {str(e)}")
             
             progress_bar.progress(100)
             
-            # Calculate time
-            total_seconds = end_time - start_time
-            minutes, seconds = divmod(int(total_seconds), 60)
-            elapsed_time_str = f"{minutes}m {seconds}s"
+            # Calculate times
+            prediction_total_time = prediction_time - start_time
+            total_time = time.time() - start_time
             
-            # Show final summary
-            st.success(f"""
-            🎉 **FULL PARALLEL PROCESSING COMPLETED!**
+            pred_minutes, pred_seconds = divmod(int(prediction_total_time), 60)
+            total_minutes, total_seconds = divmod(int(total_time), 60)
             
-            **PRIORITY PATH (✅ DONE):**
-            ⚡ Audio → **PARALLEL Transcription**: {transcription_method}
-            ⚡ Transcription → **DIRECT PREDICTION**: ✅ COMPLETED
-            ⏱️ **Main Process Time:** {elapsed_time_str}
-            
-            **BACKGROUND PROCESSES (🔄 Running):**
-            🔄 S3 Upload: In Progress
-            🔄 **PARALLEL Speaker Separation** + **BATCH DB Save**: In Progress
-            
-            **ARCHITECTURE OPTIMIZATIONS:**
-            ⚡ **Transcription**: Parallel chunk processing
-            ⚡ **Speaker Separation**: Parallel chunk processing  
-            ⚡ **Database**: Batch insert operations
-            ⚡ **Performance**: Maximum speed for all operations
-            """)
-            
-            # Optional: Quick status check for background processes
-            time.sleep(2)
-            try:
-                # Check S3 result
-                s3_result = s3_future.result(timeout=1)
-                if s3_result["success"]:
-                    st.success(f"✅ Background: {s3_result['message']}")
-                else:
-                    st.warning(f"⚠️ S3 upload issue: {s3_result['error']}")
-            except:
-                st.info("🔄 S3 upload continuing in background...")
-            
-            try:
-                # Check separation result
-                sep_result = separation_future.result(timeout=1)
-                if sep_result["success"]:
-                    st.success(f"⚡ Background: {sep_result['message']} (Method: {sep_result.get('method', 'Unknown')})")
-                else:
-                    st.warning(f"⚠️ Speaker separation issue: {sep_result['error']}")
-            except:
-                st.info("🔄 Parallel speaker separation continuing in background...")
+            # Final summary
+            st.success("Step 8/8: ✅ Semua proses selesai!.")
+            st.success(f"🎉 Proses berhasil diselesaikan dalam {total_minutes} menit {total_seconds} detik")
+            st.info("💡 **Sekarang aman untuk atau menutup tab ini**")
         
         else:
             st.error("❌ Please upload an audio file first!")
@@ -2252,7 +2490,7 @@ with tab2:
             conn = create_db_connection()
             cursor = conn.cursor()
             
-            st.write(f"DEBUG: Starting FULLY optimized restart for registration_id: {registration_id}")
+            print(f"DEBUG: Starting FULLY optimized restart for registration_id: {registration_id}")
             
             # [Previous database cleanup code remains the same...]
             
@@ -2277,7 +2515,7 @@ with tab2:
             if transcriptions:
                 # Skenario 2: Process from existing transcriptions
                 process_transcriptions(registration_id)
-                st.success("Proses audio ke transkrip berhasil di-restart dari txtan_transkrip!")
+                # st.success("Proses audio ke transkrip berhasil di-restart dari txtan_transkrip!")
             else:
                 # Skenario 1: Process from S3 audio
                 audio_query = """
@@ -2301,7 +2539,7 @@ with tab2:
                         audio_bytes = audio_obj['Body'].read()
                         
                         # === STEP 1: PARALLEL TRANSCRIPTION ===
-                        st.info("🚀 Step 1/4: PARALLEL Transcription...")
+                        # st.info("🚀 Step 1/4: PARALLEL Transcription...")
                         transcript = transcribe_with_openai_chunked_parallel(
                             audio_bytes, audio_file_name, max_workers=4
                         )
@@ -2310,52 +2548,132 @@ with tab2:
                             st.error("❌ Transcription failed")
                             return
                         
-                        st.success("⚡ Step 1/4: Parallel transcription completed!")
+                        # st.success("⚡ Step 1/4: Parallel transcription completed!")
                         
                         # === STEP 2: PARALLEL SPEAKER SEPARATION ===
-                        st.info("🎭 Step 2/4: PARALLEL Speaker Separation...")
+                        # st.info("🎭 Step 2/4: PARALLEL Speaker Separation...")
                         transcript_text = transcript.text if hasattr(transcript, 'text') else str(transcript)
                         
                         # Use parallel speaker separation
                         separated_transcript = separate_speakers_parallel(
                             transcript_text, 
-                            num_speakers, 
+                            2, 
                             max_workers=3  # Lower for GPT API limits
                         )
                         
-                        st.success("⚡ Step 2/4: Parallel speaker separation completed!")
+                        # st.success("⚡ Step 2/4: Parallel speaker separation completed!")
                         
                         # === STEP 3: PROCESS TO DATAFRAME ===
-                        st.info("🔄 Step 3/4: Processing to database format...")
-                        df = process_gpt_response_to_dataframe(separated_transcript)
+                        # st.info("🔄 Step 3/4: Processing to database format...")
+                        print("DEBUG separated_transcript:", separated_transcript)
+                        df_result = process_gpt_response_to_dataframe(separated_transcript)
+
+                        if isinstance(df_result, str):
+                            
+                            # Parse the string format manually
+                            lines = df_result.strip().split('\n')[1:]  # Skip header
+                            data = {'text': [], 'speaker': []}
+                            
+                            for line in lines:
+                                if line.strip():
+                                    # Use regex to extract: number + text + speaker
+                                    match = re.match(r'(\d+)\s+(.+?)\s+(Kandidat|Assessor)$', line.strip())
+                                    if match:
+                                        index, text, speaker = match.groups()
+                                        data['text'].append(text.strip())
+                                        data['speaker'].append(speaker.strip())
+                                    else:
+                                        # Fallback: split by last word (assume it's speaker)
+                                        parts = line.strip().split()
+                                        if len(parts) >= 3:  # At least index + some text + speaker
+                                            speaker = parts[-1]
+                                            text = ' '.join(parts[1:-1])  # Everything between index and speaker
+                                            if speaker in ['Kandidat', 'Assessor']:
+                                                data['text'].append(text.strip())
+                                                data['speaker'].append(speaker.strip())
+                            
+                            df = pd.DataFrame(data)
+                            st.write(f"Parsed {len(df)} rows from string")
+                        else:
+                            df = df_result
                         
                         if df is not None and not df.empty:
-                            st.success("✅ Step 3/4: Database format ready!")
+                            # st.success("✅ Step 3/4: Database format ready!")
+                            
+                            # Debug DataFrame structure
+                            print(f"🔍 DataFrame shape: {df.shape}")
+                            print(f"🔍 DataFrame columns: {list(df.columns)}")
                             
                             # === STEP 4: BATCH DATABASE INSERT ===
-                            st.info("🚀 Step 4/4: BATCH database insert...")
+                            # st.info("🚀 Step 4/4: BATCH database insert...")
                             
                             batch_data = []
-                            for index, row in df.iterrows():
+                            print(f"DEBUG batch data before: {batch_data}")
+                            
+                            # Debug each row processing
+                            for i in range(len(df)):
+                                text_val = df.iloc[i]['text']
+                                speaker_val = df.iloc[i]['speaker']
+                                
+                                print(f"🔍 Row {i}: text='{str(text_val)[:30]}...', speaker='{speaker_val}'")
+                                
                                 batch_data.append((
-                                    id_audio, registration_id, row['text'], 
-                                    row['speaker'], 0, 0
+                                    id_audio, 
+                                    registration_id, 
+                                    text_val, 
+                                    speaker_val, 
+                                    0, 
+                                    0
                                 ))
+                                
+                                print(f"🔍 Batch data now has {len(batch_data)} items")
                             
-                            insert_query = """
-                            INSERT INTO txtan_separator (id_transkrip, registration_id, revisi_transkrip, revisi_speaker, revisi_start_section, revisi_end_section)
-                            VALUES (%s, %s, %s, %s, %s, %s)
-                            """
+                            print(f"DEBUG batch data after loop: {len(batch_data)} items")
+                            print(f"🔍 Sample batch item: {batch_data[0] if batch_data else 'No items'}")
                             
-                            cursor.executemany(insert_query, batch_data)
-                            conn.commit()
-                            
-                            st.success(f"⚡ Step 4/4: Batch inserted {len(batch_data)} rows!")
-                            st.success("🎉 FULLY OPTIMIZED restart completed successfully!")
+                            if len(batch_data) > 0:
+                                try:
+                                    # Properly close existing cursor
+                                    try:
+                                        cursor.close()
+                                    except:
+                                        pass
+                                    
+                                    # Clear any pending operations
+                                    try:
+                                        conn.rollback()  # Clear any pending transactions
+                                    except:
+                                        pass
+                                    
+                                    # Create fresh cursor
+                                    cursor = conn.cursor()
+                                    
+                                    insert_query = """
+                                    INSERT INTO txtan_separator (id_transkrip, registration_id, revisi_transkrip, revisi_speaker, revisi_start_section, revisi_end_section)
+                                    VALUES (%s, %s, %s, %s, %s, %s)
+                                    """
+                                    
+                                    print("🔍 Executing database insert...")
+                                    cursor.executemany(insert_query, batch_data)
+                                    conn.commit()
+                                    cursor.close()
+                                    
+                                    # st.success(f"⚡ Step 4/4: Batch inserted {len(batch_data)} rows!")
+                                    # st.success("🎉 FULLY OPTIMIZED restart completed successfully!")
+                                    
+                                except Exception as db_error:
+                                    # st.error(f"❌ Database error: {db_error}")
+                                    print(f"🔍 Error details: {str(db_error)}")
+                                    try:
+                                        cursor.close()
+                                    except:
+                                        pass
+                            else:
+                                st.error("❌ batch_data is empty after processing!")
                             
                         else:
                             st.error("❌ Failed to process transcript to dataframe")
-                            
+
                     except Exception as e:
                         st.error(f"❌ Error in optimized process: {e}")
                 else:
@@ -2461,7 +2779,7 @@ with tab3:
             
             # Run prediction again
             predictor(registration_id, dropdown_options_predict_competency)
-            st.success("Proses transkrip ke prediksi kompetensi berhasil di-restart!")
+            #st.success("Proses transkrip ke prediksi kompetensi berhasil di-restart!")
                 
         except Exception as e:
             st.error(f"Error saat restart proses transkrip ke prediksi: {e}")
@@ -2654,7 +2972,7 @@ with tab4:
     with st.container(border=True):
         st.write("Berikut adalah fitur dimana Anda bisa menambahkan set kompetensi, set level dan kode assessor baru ke sistem")
 
-    subtab1, subtab2, subtab3 = st.tabs(["⚙️ <admin> Input Produk", "⚙️ <admin> Input Level", "⚙️ <admin> Input Assessor"])
+    subtab1, subtab2, subtab3 = st.tabs(["⚙️ <admin> Input Set Kompetensi", "⚙️ <admin> Input Set Level", "⚙️ <admin> Input Kode Assessor"])
 
     ########################SUBTAB 1
     with subtab1:
@@ -2662,11 +2980,12 @@ with tab4:
             st.subheader("Menambahkan Set Kompetensi")
             st.write("""
             Berikut adalah fitur dimana Anda bisa menambahkan set level secara mandiri.Set level yang sudah diinput disini akan muncul di tab Parameter pada  pilihan set level. Cara menambahkan level dengan:\n
-            1. Masukkan nama level pada input Nama Set Level\n
-            2. Masukkan nama pada input Nama Level 1 dan berikan value yang sesuai. Contoh: level 1 maka valuenya 1, very low maka valuenya 1, dsb.\n
-            3. Klik add level jika membutuhkan nama level baru (ada kemungkinan delay jadi jika tidak muncul bisa di klik lagi)\n
-            4. Anda bisa klik delete pada nama level yang tidak sesuai.\n
-            5. Lakukan cek kembali lalu jika sudah yakin klik Simpan Set Level
+            1. Masukkan nama Set Kompetensi\n
+            2. Masukkan nama Kompetensi 1 pada Input Kompetensi 1 juga deskripsinya (jika ada).\n
+            3. Jika ada maka masukkan nama Level Kompetensi, Value dan Deskripsinya.\n
+            4. Klik tambah level jika membutuhkan nama level baru (ada kemungkinan delay jadi jika tidak muncul bisa di klik lagi)\n
+            5. Klik tambah kompetensi jika ingin menambahkan kompetensi 2, kompetensi 3 dan seterusnya.\n
+            5. Lakukan cek kembali lalu jika sudah yakin klik Simpan Set Kompetensi.\n
             """)
         # Clean up old session state if it exists
         if 'competencies' in st.session_state:
@@ -2752,7 +3071,7 @@ with tab4:
                 with st.container(border=True):
                     col1, col2 = st.columns([5, 3], vertical_alignment="bottom")
                     with col1:
-                        st.write(f"**Competency {comp_idx + 1}**")
+                        st.write(f"**Kompetensi {comp_idx + 1}**")
                     with col2:
                         if len(st.session_state['competency_inputs']) > 1:
                             if st.button(f"Delete Competency {comp_idx + 1}", key=f"delete_comp_{comp_idx}", icon="🗑️", use_container_width=True):
@@ -2761,30 +3080,30 @@ with tab4:
                     
                     # Competency name and description
                     st.session_state['competency_inputs'][comp_idx]['competency'] = st.text_input(
-                        f"Competency Name {comp_idx + 1}",
+                        f"Nama Kompetensi {comp_idx + 1}",
                         value=competency_input['competency'],
                         key=f"competency_name_{comp_idx}"
                     )
                     st.session_state['competency_inputs'][comp_idx]['description'] = st.text_area(
-                        f"Competency Description {comp_idx + 1}",
+                        f"Deskripsi Kompetensi {comp_idx + 1}",
                         value=competency_input['description'],
                         key=f"competency_desc_{comp_idx}"
                     )
                     
                     # Levels for this competency
-                    st.write(f"**Define Levels for Competency {comp_idx + 1}:**")
+                    st.write(f"**Definisi Level untuk Kompetensi {comp_idx + 1}:**")
                     with st.container(border=True):
                         for level_idx, level_input in enumerate(competency_input['levels']):
                             col1, col2, col3 = st.columns([4, 2, 3], vertical_alignment="bottom")
                             with col1:
                                 st.session_state['competency_inputs'][comp_idx]['levels'][level_idx]['name'] = st.text_input(
-                                    f"Level Name {level_idx + 1}",
+                                    f"Nama Level {level_idx + 1}",
                                     value=level_input['name'],
                                     key=f"comp_{comp_idx}_level_name_{level_idx}"
                                 )
                             with col2:
                                 st.session_state['competency_inputs'][comp_idx]['levels'][level_idx]['value'] = st.number_input(
-                                    f"Level Value {level_idx + 1}",
+                                    f"Value Level {level_idx + 1}",
                                     value=level_input['value'],
                                     step=1,
                                     key=f"comp_{comp_idx}_level_value_{level_idx}"
@@ -2796,28 +3115,28 @@ with tab4:
                                         st.rerun()
                             
                             st.session_state['competency_inputs'][comp_idx]['levels'][level_idx]['description'] = st.text_area(
-                                f"Level Description {level_idx + 1}",
+                                f"Deskripsi Level {level_idx + 1}",
                                 value=level_input['description'],
                                 key=f"comp_{comp_idx}_level_desc_{level_idx}"
                             )
                         
                         # Add Level button for this competency
-                        if st.button(f"Add Level", key=f"add_level_comp_{comp_idx}", use_container_width=True, icon="➕"):
+                        if st.button(f"Tambah Level", key=f"add_level_comp_{comp_idx}", use_container_width=True, icon="➕"):
                             st.session_state['competency_inputs'][comp_idx]['levels'].append({"name": "", "value": 0, "description": ""})
                             st.rerun()
             
             # Add Competency button
-            if st.button("Add Competency", use_container_width=True, icon="➕", key="add_competency_btn"):
+            if st.button("Tambah Kompetensi", use_container_width=True, icon="➕", key="add_competency_btn"):
                 st.session_state['competency_inputs'].append({"competency": "", "description": "", "levels": [{"name": "", "value": 0, "description": ""}]})
                 st.rerun()
 
         # Form for final submission
         with st.form(key='submit_form'):
-            st.write("**Submit all competencies to database**")
-            submit_name_product = st.text_input('Confirm Name Set Kompetensi', value=input_name_product, key='name_competency_set_submit')
+            st.write("**Masukkan semua kompetensi ke database**")
+            submit_name_product = st.text_input('Konfirmasi Nama Set Kompetensi', value=input_name_product, key='name_competency_set_submit')
             
             # Submit all competencies and levels to DB
-            submit_button = st.form_submit_button("Submit All Competencies and Levels", use_container_width=True, icon="💾")
+            submit_button = st.form_submit_button("Simpan Set Kompetensi", use_container_width=True, icon="💾")
             
         if submit_button:
             # Check if there are any competencies with valid data
@@ -2884,7 +3203,10 @@ with tab4:
             st.write("""
             Berikut adalah fitur dimana Anda bisa menambahkan set level secara mandiri.Set level yang sudah diinput disini akan muncul di tab Parameter pada  pilihan set level. Cara menambahkan level dengan:\n
             1. Masukkan nama level pada input Nama Set Level\n
-            2. Masukkan nama pada input Nama Level 1 dan berikan value yang sesuai. Contoh: level 1 maka valuenya 1, very low maka valuenya 1, dsb.\n
+            2. Masukkan nama pada input Nama Level 1 dan berikan value yang sesuai. \n
+                    Contoh:
+                     - level 1 maka valuenya 1, level 2 maka valuenya 2 dst.
+                     - very low maka valuenya 1, low valuenya 2 dst.
             3. Klik add level jika membutuhkan nama level baru (ada kemungkinan delay jadi jika tidak muncul bisa di klik lagi)\n
             4. Anda bisa klik delete pada nama level yang tidak sesuai.\n
             5. Lakukan cek kembali lalu jika sudah yakin klik Simpan Set Level
@@ -2971,7 +3293,7 @@ with tab4:
                         if st.button("Delete", key=f"remove_level_{i}"):
                             st.session_state['level_inputs'].pop(i)
 
-                if st.button("Add Level", use_container_width=True, icon="➕"):
+                if st.button("Tambah Level", use_container_width=True, icon="➕"):
                     st.session_state['level_inputs'].append({"name": "", "value": 0})
 
             if st.session_state['new_levels_name']:

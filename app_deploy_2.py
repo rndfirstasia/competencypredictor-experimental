@@ -794,7 +794,10 @@ with tab1:
                 #st.dataframe(f"Final pred CONCAT: {final_predictions_df}") #debug
                 final_predictions_df = final_predictions_df.applymap(lambda x: x.replace('**', '') if isinstance(x, str) else x)
                 #st.dataframe(f"Final pred MAP: {final_predictions_df}") #debug
-                final_predictions_df = final_predictions_df.drop(index=0).reset_index(drop=True)
+                if 0 in final_predictions_df.index:
+                    final_predictions_df = final_predictions_df.drop(index=0).reset_index(drop=True)
+                else:
+                    final_predictions_df = final_predictions_df.reset_index(drop=True)
                 #st.dataframe(f"Final pred DROP dan RESET INDEX: {final_predictions_df}") #debug
                 
                 print(f"Final pred DONE: {final_predictions_df}")  # debug
@@ -3386,3 +3389,4 @@ with tab4:
                 save_assessor_to_db(input_assessor_code, input_assessor_name)
             else:
                 st.error("Mohon masukkan kode dan nama assessor.")
+
